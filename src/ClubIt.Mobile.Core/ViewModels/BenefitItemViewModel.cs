@@ -12,6 +12,7 @@ public class BenefitItemViewModel(BenefitDto benefit, DateOnly today)
     public string Title => Benefit.Title;
     public string ClubName => Benefit.ClubName;
     public string? ClubLogoUrl => Benefit.ClubLogoUrl;
+    public bool HasClubLogo => !string.IsNullOrEmpty(Benefit.ClubLogoUrl);
     public string MerchantName => Benefit.MerchantName;
     public string ValueText => BenefitFormatter.ValueText(Benefit);
     public string ValidityText => BenefitFormatter.ValidityText(Benefit, today);

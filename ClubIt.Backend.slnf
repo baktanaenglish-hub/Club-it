@@ -1,0 +1,14 @@
+{
+  "solution": {
+    "path": "ClubIt.sln",
+    "projects": [
+      "src\\ClubIt.Domain\\ClubIt.Domain.csproj",
+      "src\\ClubIt.Contracts\\ClubIt.Contracts.csproj",
+      "src\\ClubIt.Application\\ClubIt.Application.csproj",
+      "src\\ClubIt.Infrastructure\\ClubIt.Infrastructure.csproj",
+      "src\\ClubIt.Api\\ClubIt.Api.csproj",
+      "src\\ClubIt.Mobile.Core\\ClubIt.Mobile.Core.csproj",
+      "tests\\ClubIt.Tests\\ClubIt.Tests.csproj"
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="ClubIt.Mobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:ClubIt.Mobile.Pages"
+    Title="Club it"
+    FlowDirection="RightToLeft"
+    Shell.FlyoutBehavior="Disabled">
+
+    <ShellContent
+        Route="login"
+        Shell.NavBarIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        ContentTemplate="{DataTemplate pages:LoginPage}" />
+
+    <!-- Main navigation: bottom tabs. -->
+    <TabBar Route="main">
+        <Tab Title="חיפוש" Route="search" Icon="tab_search.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:SearchPage}" />
+        </Tab>
+        <Tab Title="יציאות" Route="entertainment" Icon="tab_ticket.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:EntertainmentPage}" />
+        </Tab>
+        <Tab Title="הוספה" Route="add" Icon="tab_add.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:BenefitEditPage}" />
+        </Tab>
+        <Tab Title="הגדרות" Route="settings" Icon="tab_settings.png">
+            <ShellContent ContentTemplate="{DataTemplate pages:ClubSettingsPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

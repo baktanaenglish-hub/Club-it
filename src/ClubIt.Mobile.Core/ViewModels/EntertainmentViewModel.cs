@@ -23,6 +23,10 @@ public partial class EntertainmentViewModel(IClubItApi api, INavigationService n
     [ObservableProperty]
     public partial bool IsEmpty { get; set; }
 
+    /// <summary>Pull-to-refresh state; kept apart from <see cref="ViewModelBase.IsBusy"/>, which guards re-entry.</summary>
+    [ObservableProperty]
+    public partial bool IsRefreshing { get; set; }
+
     partial void OnSelectedClubChanged(ClubDto? value)
     {
         if (!_loadingClubs)
@@ -76,6 +80,7 @@ public partial class EntertainmentViewModel(IClubItApi api, INavigationService n
             }
         });
         IsEmpty = Results.Count == 0 && !HasError;
+        IsRefreshing = false;
     }
 
     [RelayCommand]

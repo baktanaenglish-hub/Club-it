@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             xmlns:households="clr-namespace:ClubIt.Contracts.Households;assembly=ClubIt.Contracts"
+             x:Class="ClubIt.Mobile.Pages.ClubSettingsPage"
+             x:DataType="vm:ClubSettingsViewModel"
+             Title="הגדרות">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="10">
+            <Label Text="המועדונים שלנו" Style="{StaticResource PageTitle}" />
+            <Label Text="סמנו את המועדונים וכרטיסי האשראי שיש למשק הבית. ההגדרה משותפת לכל בני הבית."
+                   Style="{StaticResource Caption}" />
+
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+            <Border Style="{StaticResource Card}" Padding="6">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Clubs}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SelectableClub">
+                            <Grid ColumnDefinitions="Auto,*" Padding="4,2">
+                                <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="{Binding Name}" FontSize="16" />
+                                    <Label Text="{Binding TypeName}" Style="{StaticResource Caption}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="שמירת המועדונים" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" />
+
+            <!-- Household -->
+            <Label Text="משק הבית" Style="{StaticResource SectionTitle}" Margin="0,16,0,0" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Household.Name}" FontSize="17" FontAttributes="Bold" />
+                    <Label Text="קוד הצטרפות לבן/בת הזוג:" Style="{StaticResource Caption}" />
+                    <Label Text="{Binding Household.InviteCode}" FontSize="22" FontAttributes="Bold"
+                           FlowDirection="LeftToRight" HorizontalOptions="Start" TextColor="{StaticResource Primary}" />
+                    <Label Text="בהרשמה, בחרו &quot;להצטרף למשק בית קיים&quot; והזינו את הקוד." Style="{StaticResource Caption}" />
+
+                    <Label Text="חברי משק הבית" Style="{StaticResource FieldLabel}" />
+                    <VerticalStackLayout BindableLayout.ItemsSource="{Binding Household.Members}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="households:HouseholdMemberDto">
+                                <Label Text="{Binding DisplayName}" />
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="ניהול רשתות וסניפים" Command="{Binding ManageMerchantsCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="{Binding UserName, StringFormat='התנתקות ({0})'}" Command="{Binding SignOutCommand}"
+                    Style="{StaticResource DangerButton}" Margin="0,0,0,24" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

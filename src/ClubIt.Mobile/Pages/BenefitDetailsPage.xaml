@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             x:Class="ClubIt.Mobile.Pages.BenefitDetailsPage"
+             x:DataType="vm:BenefitDetailsViewModel"
+             Title="פרטי הטבה">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="12">
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+            <Border Style="{StaticResource Card}" IsVisible="{Binding HasBenefit}">
+                <VerticalStackLayout Spacing="10">
+                    <!-- Club and logo -->
+                    <HorizontalStackLayout Spacing="10">
+                        <Image Source="{Binding Benefit.ClubLogoUrl}" HeightRequest="36" WidthRequest="36" />
+                        <VerticalStackLayout VerticalOptions="Center">
+                            <Label Text="{Binding Benefit.ClubName}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Primary}" />
+                            <Label Text="{Binding Benefit.MerchantName}" Style="{StaticResource Caption}" />
+                        </VerticalStackLayout>
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding Benefit.Title}" FontSize="22" FontAttributes="Bold" />
+
+                    <HorizontalStackLayout Spacing="8">
+                        <Border Style="{StaticResource ValueBadge}">
+                            <Label Text="{Binding ValueText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Tertiary}" />
+                        </Border>
+                        <Label Text="{Binding TypeText}" Style="{StaticResource Caption}" VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+
+                    <Label Text="{Binding Benefit.Description}" FontSize="15" />
+
+                    <Label Text="תוקף" Style="{StaticResource FieldLabel}" />
+                    <Label Text="{Binding ValidityText}" />
+
+                    <Label Text="סניפים" Style="{StaticResource FieldLabel}" />
+                    <Label Text="{Binding BranchesText}" />
+
+                    <Label Text="קטגוריה" Style="{StaticResource FieldLabel}" />
+                    <Label Text="{Binding Benefit.CategoryName}" />
+
+                    <Label Text="הערות" Style="{StaticResource FieldLabel}" IsVisible="{Binding Benefit.Notes, Converter={StaticResource IsNotEmpty}}" />
+                    <Label Text="{Binding Benefit.Notes}" IsVisible="{Binding Benefit.Notes, Converter={StaticResource IsNotEmpty}}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="למימוש ההטבה" Command="{Binding RedeemCommand}" IsVisible="{Binding CanRedeem}" FontSize="18" HeightRequest="52" />
+            <Label Text="לא הוזן קישור למימוש. ממשו את ההטבה ישירות באתר או באפליקציה של המועדון."
+                   IsVisible="{Binding CanRedeem, Converter={StaticResource InvertedBool}}" Style="{StaticResource Caption}" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10" IsVisible="{Binding CanEdit}">
+                <Button Text="עריכה" Command="{Binding EditCommand}" Style="{StaticResource SecondaryButton}" />
+                <Button Grid.Column="1" Text="מחיקה" Command="{Binding DeleteCommand}" Style="{StaticResource DangerButton}" />
+            </Grid>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

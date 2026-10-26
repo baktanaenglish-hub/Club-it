@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore tools
+        run: dotnet tool restore
+
+      - name: Build and test
+        run: dotnet test ClubIt.Backend.slnf --configuration Release
+
+      - name: Check that migrations match the model
+        run: >
+          dotnet ef migrations has-pending-model-changes
+          --project src/ClubIt.Infrastructure
+          --startup-project src/ClubIt.Infrastructure
+          --configuration Release
+
+  mobile-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: "17"
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Build Android app
+        run: dotnet build src/ClubIt.Mobile/ClubIt.Mobile.csproj -f net10.0-android -c Release

@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             xmlns:categories="clr-namespace:ClubIt.Contracts.Categories;assembly=ClubIt.Contracts"
+             xmlns:merchants="clr-namespace:ClubIt.Contracts.Merchants;assembly=ClubIt.Contracts"
+             x:Class="ClubIt.Mobile.Pages.MerchantsPage"
+             x:DataType="vm:MerchantsViewModel"
+             Title="רשתות וסניפים">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="8">
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+            <!-- New merchant -->
+            <Label Text="הוספת רשת" Style="{StaticResource SectionTitle}" />
+            <Border Style="{StaticResource Card}">
+                <VerticalStackLayout Spacing="6">
+                    <Entry Text="{Binding NewMerchantName}" Placeholder="שם הרשת או העסק" />
+                    <Picker ItemsSource="{Binding Categories}" SelectedItem="{Binding NewMerchantCategory}"
+                            ItemDisplayBinding="{Binding Name, x:DataType=categories:CategoryDto}" Title="קטגוריה" />
+                    <Entry Text="{Binding NewMerchantAliases}" Placeholder="כינויים, מופרדים בפסיק (למשל: שופר סל, shufersal)" />
+                    <Button Text="הוספת רשת" Command="{Binding AddMerchantCommand}" IsEnabled="{Binding IsNotBusy}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Existing merchants -->
+            <Label Text="רשתות קיימות" Style="{StaticResource SectionTitle}" />
+            <SearchBar Text="{Binding Query}" Placeholder="חיפוש רשת" />
+            <Border Style="{StaticResource Card}" Padding="0">
+                <CollectionView ItemsSource="{Binding Merchants}" SelectionMode="Single"
+                                SelectedItem="{Binding SelectedMerchant}" MaximumHeightRequest="260">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="merchants:MerchantDto">
+                            <VerticalStackLayout Padding="14,8">
+                                <Label Text="{Binding Name}" FontSize="16" />
+                                <Label Text="{Binding CategoryName}" Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </Border>
+
+            <!-- Selected merchant: aliases and branches -->
+            <VerticalStackLayout IsVisible="{Binding HasSelectedMerchant}" Spacing="6">
+                <Label Text="{Binding SelectedMerchant.Name}" Style="{StaticResource PageTitle}" Margin="0,8,0,0" />
+
+                <Label Text="כינויים לחיפוש" Style="{StaticResource FieldLabel}" />
+                <Entry Text="{Binding SelectedAliasesText}" Placeholder="מופרדים בפסיק" />
+                <Button Text="שמירת כינויים" Command="{Binding SaveAliasesCommand}" Style="{StaticResource SecondaryButton}" />
+
+                <Label Text="סניפים" Style="{StaticResource FieldLabel}" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Branches}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="merchants:BranchDto">
+                            <VerticalStackLayout Padding="0,4">
+                                <Label Text="{Binding Name}" />
+                                <Label Text="{Binding City}" Style="{StaticResource Caption}" />
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                    <BindableLayout.EmptyView>
+                        <Label Text="אין עדיין סניפים." Style="{StaticResource Caption}" />
+                    </BindableLayout.EmptyView>
+                </VerticalStackLayout>
+
+                <Border Style="{StaticResource Card}">
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="הוספת סניף" FontAttributes="Bold" />
+                        <Entry Text="{Binding NewBranchName}" Placeholder="שם הסניף" />
+                        <Entry Text="{Binding NewBranchCity}" Placeholder="עיר" />
+                        <Entry Text="{Binding NewBranchAddress}" Placeholder="כתובת (לא חובה)" />
+                        <Button Text="הוספת סניף" Command="{Binding AddBranchCommand}" IsEnabled="{Binding IsNotBusy}" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -26,7 +26,7 @@ public partial class BenefitEditViewModel(
 
     public ObservableCollection<ClubDto> Clubs { get; } = [];
     public ObservableCollection<MerchantDto> MerchantSuggestions { get; } = [];
-    public ObservableCollection<SelectableItem<BranchDto>> Branches { get; } = [];
+    public ObservableCollection<SelectableBranch> Branches { get; } = [];
 
     /// <summary>Null when adding a new benefit.</summary>
     [ObservableProperty]
@@ -305,7 +305,7 @@ public partial class BenefitEditViewModel(
         Branches.Clear();
         foreach (var branch in benefit.Branches)
         {
-            Branches.Add(new SelectableItem<BranchDto>(branch, isSelected: true));
+            Branches.Add(new SelectableBranch(branch, isSelected: true));
         }
     }
 
@@ -348,7 +348,7 @@ public partial class BenefitEditViewModel(
         Branches.Clear();
         foreach (var branch in branches)
         {
-            Branches.Add(new SelectableItem<BranchDto>(branch, selectedIds.Contains(branch.Id)));
+            Branches.Add(new SelectableBranch(branch, selectedIds.Contains(branch.Id)));
         }
     }
 

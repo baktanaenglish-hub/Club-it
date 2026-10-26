@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             xmlns:merchants="clr-namespace:ClubIt.Contracts.Merchants;assembly=ClubIt.Contracts"
+             xmlns:pages="clr-namespace:ClubIt.Mobile.Pages"
+             x:Class="ClubIt.Mobile.Pages.SearchPage"
+             x:DataType="vm:SearchViewModel"
+             Title="חיפוש הטבות">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,12,16,0">
+
+        <!-- Search box and optional branch -->
+        <VerticalStackLayout Spacing="8">
+            <Label Text="איפה אתם קונים?" Style="{StaticResource PageTitle}" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                <SearchBar Text="{Binding Query}" Placeholder="שם חנות או רשת, למשל שופרסל"
+                           SearchCommand="{Binding SearchCommand}" />
+                <Button Grid.Column="1" Text="נקה" Command="{Binding ClearCommand}" Style="{StaticResource SecondaryButton}"
+                        Padding="12,0" />
+            </Grid>
+
+            <VerticalStackLayout IsVisible="{Binding HasBranches}" Spacing="2">
+                <Label Text="סניף (לא חובה)" Style="{StaticResource FieldLabel}" />
+                <Picker ItemsSource="{Binding Branches}" SelectedItem="{Binding SelectedBranch}"
+                        ItemDisplayBinding="{Binding Name, x:DataType=merchants:BranchDto}" Title="בחירת סניף" />
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+        </VerticalStackLayout>
+
+        <!-- Results -->
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Results}" Margin="0,8,0,0" SelectionMode="None">
+            <CollectionView.EmptyView>
+                <VerticalStackLayout Padding="24" Spacing="6" IsVisible="{Binding ShowEmptyState}">
+                    <Label Text="לא נמצאו הטבות בתוקף" FontAttributes="Bold" HorizontalOptions="Center" />
+                    <Label Text="ודאו שסימנתם את המועדונים שלכם במסך ההגדרות, או הוסיפו הטבה חדשה."
+                           Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="vm:BenefitItemViewModel">
+                    <pages:BenefitItemTemplate>
+                        <pages:BenefitItemTemplate.GestureRecognizers>
+                            <TapGestureRecognizer
+                                Command="{Binding OpenBenefitCommand, Source={RelativeSource AncestorType={x:Type vm:SearchViewModel}}, x:DataType=vm:SearchViewModel}"
+                                CommandParameter="{Binding .}" />
+                        </pages:BenefitItemTemplate.GestureRecognizers>
+                    </pages:BenefitItemTemplate>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Autocomplete suggestions, shown over the results while typing -->
+        <Border Grid.Row="1" Style="{StaticResource Card}" Padding="0" VerticalOptions="Start" ZIndex="10"
+                IsVisible="{Binding ShowSuggestions}" MaximumHeightRequest="280">
+            <CollectionView ItemsSource="{Binding Suggestions}" SelectionMode="None">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="merchants:MerchantDto">
+                        <VerticalStackLayout Padding="14,10">
+                            <Label Text="{Binding Name}" FontSize="16" />
+                            <Label Text="{Binding CategoryName}" Style="{StaticResource Caption}" />
+                            <VerticalStackLayout.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding SelectSuggestionCommand, Source={RelativeSource AncestorType={x:Type vm:SearchViewModel}}, x:DataType=vm:SearchViewModel}"
+                                    CommandParameter="{Binding .}" />
+                            </VerticalStackLayout.GestureRecognizers>
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Border>
+    </Grid>
+</ContentPage>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             xmlns:clubs="clr-namespace:ClubIt.Contracts.Clubs;assembly=ClubIt.Contracts"
+             xmlns:pages="clr-namespace:ClubIt.Mobile.Pages"
+             x:Class="ClubIt.Mobile.Pages.EntertainmentPage"
+             x:DataType="vm:EntertainmentViewModel"
+             Title="יציאות">
+
+    <Grid RowDefinitions="Auto,*" Padding="16,12,16,0">
+        <VerticalStackLayout Spacing="8">
+            <Label Text="סרטים, הצגות ואטרקציות" Style="{StaticResource PageTitle}" />
+            <Picker ItemsSource="{Binding Clubs}" SelectedItem="{Binding SelectedClub}"
+                    ItemDisplayBinding="{Binding Name, x:DataType=clubs:ClubDto}" Title="סינון לפי מועדון" />
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+        </VerticalStackLayout>
+
+        <RefreshView Grid.Row="1" Command="{Binding RefreshCommand}" IsRefreshing="{Binding IsRefreshing}" Margin="0,8,0,0">
+            <CollectionView ItemsSource="{Binding Results}" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="24" Spacing="6" IsVisible="{Binding IsEmpty}">
+                        <Label Text="אין כרגע הטבות יציאות בתוקף" FontAttributes="Bold" HorizontalOptions="Center" />
+                        <Label Text="הוסיפו הטבה לקולנוע, הצגה או אטרקציה בלשונית &quot;הוספה&quot;."
+                               Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:BenefitItemViewModel">
+                        <pages:BenefitItemTemplate>
+                            <pages:BenefitItemTemplate.GestureRecognizers>
+                                <TapGestureRecognizer
+                                    Command="{Binding OpenBenefitCommand, Source={RelativeSource AncestorType={x:Type vm:EntertainmentViewModel}}, x:DataType=vm:EntertainmentViewModel}"
+                                    CommandParameter="{Binding .}" />
+                            </pages:BenefitItemTemplate.GestureRecognizers>
+                        </pages:BenefitItemTemplate>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>

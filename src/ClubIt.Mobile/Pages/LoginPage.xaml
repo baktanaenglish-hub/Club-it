@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             x:Class="ClubIt.Mobile.Pages.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Title="{Binding Title}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="24,48" Spacing="12" MaximumWidthRequest="480">
+
+            <Label Text="Club it" FontSize="36" FontAttributes="Bold" HorizontalOptions="Center"
+                   TextColor="{StaticResource Primary}" />
+            <Label Text="כל ההטבות שלכם במקום אחד" HorizontalOptions="Center" Style="{StaticResource Caption}" />
+
+            <Label Text="{Binding Title}" Style="{StaticResource PageTitle}" Margin="0,24,0,0" />
+
+            <Label Text="אימייל" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Email}" Keyboard="Email" Placeholder="name@example.com"
+                   FlowDirection="LeftToRight" HorizontalTextAlignment="End" />
+
+            <Label Text="סיסמה" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Password}" IsPassword="True" Placeholder="לפחות 8 תווים, כולל ספרה"
+                   ReturnCommand="{Binding SubmitCommand}" />
+
+            <!-- Registration only -->
+            <VerticalStackLayout Spacing="12" IsVisible="{Binding IsRegisterMode}">
+                <Label Text="שם להצגה" Style="{StaticResource FieldLabel}" />
+                <Entry Text="{Binding DisplayName}" Placeholder="איך לקרוא לכם?" />
+
+                <HorizontalStackLayout Spacing="8">
+                    <CheckBox IsChecked="{Binding JoinExistingHousehold}" VerticalOptions="Center" />
+                    <Label Text="להצטרף למשק בית קיים (קיבלתי קוד מבן/בת הזוג)" VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding JoinExistingHousehold, Converter={StaticResource InvertedBool}}">
+                    <Label Text="שם משק הבית" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding HouseholdName}" Placeholder="למשל: משפחת כהן" />
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="6" IsVisible="{Binding JoinExistingHousehold}">
+                    <Label Text="קוד הצטרפות" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding InviteCode}" Placeholder="8 תווים" FlowDirection="LeftToRight"
+                           HorizontalTextAlignment="End" Keyboard="Text" />
+                    <Label Text="הקוד מופיע במסך ההגדרות של בן/בת הזוג." Style="{StaticResource Caption}" />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
+
+            <Button Text="{Binding SubmitText}" Command="{Binding SubmitCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,12,0,0" />
+            <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Button Text="{Binding ToggleModeText}" Command="{Binding ToggleModeCommand}" Style="{StaticResource SecondaryButton}" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

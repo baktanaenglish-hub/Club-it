@@ -15,7 +15,7 @@ public partial class ClubSettingsViewModel(
     INavigationService navigation,
     IDialogService dialogs) : ViewModelBase
 {
-    public ObservableCollection<SelectableItem<ClubDto>> Clubs { get; } = [];
+    public ObservableCollection<SelectableClub> Clubs { get; } = [];
 
     [ObservableProperty]
     public partial HouseholdDto? Household { get; set; }
@@ -43,7 +43,7 @@ public partial class ClubSettingsViewModel(
             Clubs.Clear();
             foreach (var club in allClubs.Result.OrderBy(c => c.Type).ThenBy(c => c.Name))
             {
-                Clubs.Add(new SelectableItem<ClubDto>(club, selected.Contains(club.Id)));
+                Clubs.Add(new SelectableClub(club, selected.Contains(club.Id)));
             }
             Household = household.Result;
         });
