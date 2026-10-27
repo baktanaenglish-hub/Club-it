@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ClubIt.Mobile.Core.ViewModels;assembly=ClubIt.Mobile.Core"
+             xmlns:clubs="clr-namespace:ClubIt.Contracts.Clubs;assembly=ClubIt.Contracts"
+             xmlns:merchants="clr-namespace:ClubIt.Contracts.Merchants;assembly=ClubIt.Contracts"
+             x:Class="ClubIt.Mobile.Pages.BenefitEditPage"
+             x:DataType="vm:BenefitEditViewModel"
+             Title="{Binding PageTitle}">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16" Spacing="6">
+            <Label Text="{Binding PageTitle}" Style="{StaticResource PageTitle}" />
+
+            <!-- Club -->
+            <Label Text="מועדון" Style="{StaticResource FieldLabel}" />
+            <Picker ItemsSource="{Binding Clubs}" SelectedItem="{Binding SelectedClub}"
+                    ItemDisplayBinding="{Binding Name, x:DataType=clubs:ClubDto}" Title="בחירת מועדון" />
+
+            <!-- Merchant with autocomplete; the category comes from the merchant -->
+            <Label Text="רשת / עסק" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding MerchantQuery}" Placeholder="התחילו להקליד שם רשת" />
+            <Border Style="{StaticResource Card}" Padding="0" IsVisible="{Binding ShowMerchantSuggestions}">
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding MerchantSuggestions}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="merchants:MerchantDto">
+                            <VerticalStackLayout Padding="14,8">
+                                <Label Text="{Binding Name}" />
+                                <Label Text="{Binding CategoryName}" Style="{StaticResource Caption}" />
+                                <VerticalStackLayout.GestureRecognizers>
+                                    <TapGestureRecognizer
+                                        Command="{Binding SelectMerchantCommand, Source={RelativeSource AncestorType={x:Type vm:BenefitEditViewModel}}, x:DataType=vm:BenefitEditViewModel}"
+                                        CommandParameter="{Binding .}" />
+                                </VerticalStackLayout.GestureRecognizers>
+                            </VerticalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+            </Border>
+            <Label Text="{Binding CategoryText}" IsVisible="{Binding HasMerchant}" Style="{StaticResource Caption}" />
+            <Button Text="רשת לא ברשימה? ניהול רשתות וסניפים" Command="{Binding ManageMerchantsCommand}"
+                    Style="{StaticResource SecondaryButton}" HorizontalOptions="Start" Padding="12,0" />
+
+            <!-- Benefit content -->
+            <Label Text="כותרת" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding Title}" Placeholder="למשל: 10% הנחה על כל הקנייה" MaxLength="200" />
+
+            <Label Text="תיאור" Style="{StaticResource FieldLabel}" />
+            <Editor Text="{Binding Description}" Placeholder="פרטים ותנאים" AutoSize="TextChanges" MaxLength="2000" />
+
+            <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                <VerticalStackLayout>
+                    <Label Text="סוג הטבה" Style="{StaticResource FieldLabel}" />
+                    <Picker ItemsSource="{Binding BenefitTypes}" SelectedItem="{Binding SelectedBenefitType}" Title="סוג" />
+                </VerticalStackLayout>
+                <VerticalStackLayout Grid.Column="1">
+                    <Label Text="{Binding ValueLabel}" Style="{StaticResource FieldLabel}" />
+                    <Entry Text="{Binding ValueText}" Keyboard="Numeric" />
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Validity: the end date is mandatory -->
+            <Label Text="בתוקף עד" Style="{StaticResource FieldLabel}" />
+            <DatePicker Date="{Binding ValidUntil}" Format="dd/MM/yyyy" />
+
+            <HorizontalStackLayout Spacing="8">
+                <CheckBox IsChecked="{Binding HasValidFrom}" VerticalOptions="Center" />
+                <Label Text="ההטבה מתחילה בתאריך מסוים" VerticalOptions="Center" />
+            </HorizontalStackLayout>
+            <DatePicker Date="{Binding ValidFrom}" Format="dd/MM/yyyy" IsVisible="{Binding HasValidFrom}" />
+
+            <!-- Branches -->
+            <HorizontalStackLayout Spacing="8" Margin="0,6,0,0">
+                <Switch IsToggled="{Binding AllBranches}" VerticalOptions="Center" />
+                <Label Text="תקפה בכל הסניפים" VerticalOptions="Center" FontAttributes="Bold" />
+            </HorizontalStackLayout>
+            <VerticalStackLayout IsVisible="{Binding AllBranches, Converter={StaticResource InvertedBool}}" Spacing="2">
+                <Label Text="בחרו את הסניפים שבהם ההטבה תקפה:" Style="{StaticResource Caption}" />
+                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Branches}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate x:DataType="vm:SelectableBranch">
+                            <HorizontalStackLayout Spacing="8">
+                                <CheckBox IsChecked="{Binding IsSelected}" VerticalOptions="Center" />
+                                <Label Text="{Binding DisplayName}" VerticalOptions="Center" />
+                            </HorizontalStackLayout>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                    <BindableLayout.EmptyView>
+                        <Label Text="לרשת זו אין עדיין סניפים. אפשר להוסיף אותם במסך ניהול רשתות." Style="{StaticResource Caption}" />
+                    </BindableLayout.EmptyView>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <!-- Redeem link -->
+            <Label Text="קישור למימוש" Style="{StaticResource FieldLabel}" />
+            <Entry Text="{Binding RedeemUrl}" Keyboard="Url" Placeholder="https://..." FlowDirection="LeftToRight" />
+
+            <Label Text="הערות" Style="{StaticResource FieldLabel}" />
+            <Editor Text="{Binding Notes}" AutoSize="TextChanges" MaxLength="2000" />
+
+            <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" Margin="0,8,0,0" />
+            <Button Text="שמירה" Command="{Binding SaveCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,12,0,24" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
