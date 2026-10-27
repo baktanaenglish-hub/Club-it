@@ -1,0 +1,8 @@
+**/bin/
+**/obj/
+**/*.db
+.git/
+.github/
+src/ClubIt.Mobile/
+src/ClubIt.Mobile.Core/
+tests/

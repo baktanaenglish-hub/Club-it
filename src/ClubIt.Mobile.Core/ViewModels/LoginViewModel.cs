@@ -6,8 +6,31 @@ using CommunityToolkit.Mvvm.Input;
 namespace ClubIt.Mobile.Core.ViewModels;
 
 /// <summary>Login and registration (create a household or join one with an invite code).</summary>
-public partial class LoginViewModel(IClubItApi api, ISessionStore session, INavigationService navigation) : ViewModelBase
+public partial class LoginViewModel : ViewModelBase
 {
+    private readonly IClubItApi _api;
+    private readonly ISessionStore _session;
+    private readonly INavigationService _navigation;
+    private readonly IServerSettings _server;
+
+    public LoginViewModel(IClubItApi api, ISessionStore session, INavigationService navigation, IServerSettings server)
+    {
+        _api = api;
+        _session = session;
+        _navigation = navigation;
+        _server = server;
+
+        ServerAddressText = server.BaseAddress?.ToString() ?? string.Empty;
+        // Without a configured server nothing works, so open the field straight away.
+        ShowServerSettings = server.BaseAddress is null;
+    }
+
+    [ObservableProperty]
+    public partial string ServerAddressText { get; set; }
+
+    [ObservableProperty]
+    public partial bool ShowServerSettings { get; set; }
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(Title), nameof(SubmitText), nameof(ToggleModeText))]
     public partial bool IsRegisterMode { get; set; }
@@ -38,6 +61,9 @@ public partial class LoginViewModel(IClubItApi api, ISessionStore session, INavi
     public string ToggleModeText => IsRegisterMode ? "כבר רשומים? להתחברות" : "משתמשים חדשים? להרשמה";
 
     [RelayCommand]
+    private void ToggleServerSettings() => ShowServerSettings = !ShowServerSettings;
+
+    [RelayCommand]
     private void ToggleMode()
     {
         IsRegisterMode = !IsRegisterMode;
@@ -47,6 +73,19 @@ public partial class LoginViewModel(IClubItApi api, ISessionStore session, INavi
     [RelayCommand]
     private async Task SubmitAsync()
     {
+        if (!ServerAddress.TryParse(ServerAddressText, out var serverAddress))
+        {
+            ShowServerSettings = true;
+            ErrorMessage = "כתובת השרת אינה תקינה. למשל: clubit-api.onrender.com";
+            return;
+        }
+
+        if (serverAddress != _server.BaseAddress)
+        {
+            _server.SetBaseAddress(serverAddress!);
+            ServerAddressText = serverAddress!.ToString();
+        }
+
         if (string.IsNullOrWhiteSpace(Email) || string.IsNullOrEmpty(Password))
         {
             ErrorMessage = "יש להזין אימייל וסיסמה.";
@@ -75,20 +114,20 @@ public partial class LoginViewModel(IClubItApi api, ISessionStore session, INavi
         var succeeded = await RunAsync(async () =>
         {
             auth = IsRegisterMode
-                ? await api.RegisterAsync(new RegisterRequest(
+                ? await _api.RegisterAsync(new RegisterRequest(
                     Email.Trim(),
                     Password,
                     DisplayName.Trim(),
                     JoinExistingHousehold ? null : HouseholdName.Trim(),
                     JoinExistingHousehold ? InviteCode.Trim() : null))
-                : await api.LoginAsync(new LoginRequest(Email.Trim(), Password));
+                : await _api.LoginAsync(new LoginRequest(Email.Trim(), Password));
         });
 
         if (succeeded && auth is not null)
         {
-            await session.SaveAsync(auth);
+            await _session.SaveAsync(auth);
             Password = string.Empty;
-            await navigation.ShowMainAsync();
+            await _navigation.ShowMainAsync();
         }
     }
 }

@@ -9,7 +9,7 @@ public class ViewModelTests(ClubItApiFactory factory) : MobileTestBase(factory)
     [Fact]
     public async Task Login_view_model_registers_and_opens_main_screen()
     {
-        var vm = new LoginViewModel(CreateApi(), Session, Navigation)
+        var vm = new LoginViewModel(CreateApi(), Session, Navigation, Server)
         {
             IsRegisterMode = true,
             Email = $"vm-{Guid.NewGuid():N}@example.com",
@@ -28,12 +28,30 @@ public class ViewModelTests(ClubItApiFactory factory) : MobileTestBase(factory)
     [Fact]
     public async Task Login_view_model_shows_server_error_for_wrong_password()
     {
-        var vm = new LoginViewModel(CreateApi(), Session, Navigation) { Email = "nobody@example.com", Password = "Password1" };
+        var vm = new LoginViewModel(CreateApi(), Session, Navigation, Server) { Email = "nobody@example.com", Password = "Password1" };
 
         await vm.SubmitCommand.ExecuteAsync(null);
 
         Assert.Equal("אימייל או סיסמה שגויים.", vm.ErrorMessage);
         Assert.False(Navigation.ShowedMain);
+    }
+
+    [Fact]
+    public async Task Login_view_model_validates_and_saves_the_server_address()
+    {
+        var server = new InMemoryServerSettings();
+        var vm = new LoginViewModel(CreateApi(), Session, Navigation, server) { Email = "a@example.com", Password = "Password1" };
+        Assert.True(vm.ShowServerSettings);
+
+        vm.ServerAddressText = "not a url";
+        await vm.SubmitCommand.ExecuteAsync(null);
+        Assert.Contains("כתובת השרת", vm.ErrorMessage);
+        Assert.Null(server.BaseAddress);
+
+        vm.ServerAddressText = "localhost";
+        await vm.SubmitCommand.ExecuteAsync(null);
+        Assert.Equal(new Uri("https://localhost/"), server.BaseAddress);
+        Assert.Equal("https://localhost/", vm.ServerAddressText);
     }
 
     [Fact]

@@ -13,8 +13,15 @@ using ClubIt.Contracts.Merchants;
 
 namespace ClubIt.Mobile.Core.Services;
 
-public class ClubItApiClient(HttpClient http, ISessionStore session) : IClubItApi
+/// <param name="server">
+/// Supplies the API address per request, so changing it takes effect immediately. When null,
+/// <paramref name="http"/>'s <see cref="HttpClient.BaseAddress"/> is used.
+/// </param>
+public class ClubItApiClient(HttpClient http, ISessionStore session, IServerSettings? server = null) : IClubItApi
 {
+    private const string NoServerMessage = "לא הוגדרה כתובת שרת. הזינו אותה במסך הכניסה.";
+    private const string TimeoutMessage = "השרת לא ענה בזמן. אם הוא היה כבוי, ייתכן שהוא עדיין מתעורר – נסו שוב בעוד רגע.";
+
     public static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         Converters = { new JsonStringEnumConverter() }
@@ -88,7 +95,10 @@ public class ClubItApiClient(HttpClient http, ISessionStore session) : IClubItAp
 
     private async Task<T> SendAsync<T>(HttpMethod method, string url, object? body, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(method, url);
+        var baseAddress = server?.BaseAddress ?? http.BaseAddress
+            ?? throw new ApiException(HttpStatusCode.ServiceUnavailable, NoServerMessage);
+
+        using var request = new HttpRequestMessage(method, new Uri(baseAddress, url));
         if (session.Token is { } token)
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -102,6 +112,11 @@ public class ClubItApiClient(HttpClient http, ISessionStore session) : IClubItAp
         try
         {
             response = await http.SendAsync(request, cancellationToken);
+        }
+        catch (TaskCanceledException e) when (!cancellationToken.IsCancellationRequested)
+        {
+            // HttpClient.Timeout elapsed; the caller did not cancel.
+            throw new ApiException(HttpStatusCode.RequestTimeout, TimeoutMessage, null, e);
         }
         catch (HttpRequestException e)
         {

@@ -1,0 +1,21 @@
+# Render Blueprint: the Club it API as a free Docker web service.
+# The database is external (e.g. Neon); paste its connection URL as DATABASE_URL when creating the Blueprint.
+services:
+  - type: web
+    name: clubit-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: Jwt__SigningKey
+        generateValue: true
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "8080"

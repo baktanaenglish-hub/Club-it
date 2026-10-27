@@ -1,0 +1,78 @@
+name: Android app
+
+# Builds an installable APK and publishes it as the "android-latest" release,
+# so it can be downloaded straight to a phone.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/ClubIt.Mobile/**"
+      - "src/ClubIt.Mobile.Core/**"
+      - "src/ClubIt.Contracts/**"
+      - ".github/workflows/android-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    env:
+      # Optional, set under Settings -> Secrets and variables -> Actions.
+      # CLUBIT_API_URL (variable): default server address baked into the app.
+      # ANDROID_KEYSTORE_BASE64 / ANDROID_KEYSTORE_PASSWORD / ANDROID_KEY_ALIAS (secrets): a fixed signing key,
+      # so new versions install over old ones. Without them each build gets its own key and the old app
+      # must be uninstalled before installing a new one.
+      KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: microsoft
+          java-version: "17"
+
+      - name: Install MAUI Android workload
+        run: dotnet workload install maui-android
+
+      - name: Signing arguments
+        id: signing
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/clubit.keystore"
+            echo "args=-p:AndroidKeyStore=true -p:AndroidSigningKeyStore=$RUNNER_TEMP/clubit.keystore -p:AndroidSigningKeyAlias=${{ secrets.ANDROID_KEY_ALIAS }} -p:AndroidSigningKeyPass=env:KEYSTORE_PASSWORD -p:AndroidSigningStorePass=env:KEYSTORE_PASSWORD" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: >
+          dotnet publish src/ClubIt.Mobile/ClubIt.Mobile.csproj
+          -f net10.0-android -c Release -o out
+          -p:AndroidPackageFormat=apk
+          -p:ApplicationVersion=${{ github.run_number }}
+          -p:ApplicationDisplayVersion=1.0.${{ github.run_number }}
+          "-p:ClubItApiUrl=${{ vars.CLUBIT_API_URL }}"
+          ${{ steps.signing.outputs.args }}
+
+      - name: Collect APK
+        run: cp "$(ls out/*-Signed.apk | head -n 1)" ClubIt.apk
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete android-latest --yes --cleanup-tag || true
+          gh release create android-latest ClubIt.apk \
+            --target "${{ github.sha }}" \
+            --title "Club it לאנדרואיד (גרסה 1.0.${{ github.run_number }})" \
+            --notes "להתקנה: פתחו את הדף הזה בטלפון, הורידו את ClubIt.apk ופתחו אותו. בפעם הראשונה אנדרואיד יבקש לאשר התקנה ממקור לא ידוע."

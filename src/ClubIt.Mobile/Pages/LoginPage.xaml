@@ -46,11 +46,23 @@
                 </VerticalStackLayout>
             </VerticalStackLayout>
 
+            <!-- Server address: opened automatically when none is configured -->
+            <VerticalStackLayout Spacing="6" IsVisible="{Binding ShowServerSettings}">
+                <Label Text="כתובת השרת" Style="{StaticResource FieldLabel}" />
+                <Entry Text="{Binding ServerAddressText}" Placeholder="clubit-api.onrender.com" Keyboard="Url"
+                       FlowDirection="LeftToRight" HorizontalTextAlignment="End" />
+                <Label Text="הכתובת שקיבלתם כשהשרת הוקם." Style="{StaticResource Caption}" />
+            </VerticalStackLayout>
+
             <Label Text="{Binding ErrorMessage}" IsVisible="{Binding HasError}" Style="{StaticResource ErrorText}" />
 
             <Button Text="{Binding SubmitText}" Command="{Binding SubmitCommand}" IsEnabled="{Binding IsNotBusy}" Margin="0,12,0,0" />
             <ActivityIndicator IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" />
+            <Label Text="מתחברים לשרת... בפעם הראשונה אחרי הפסקה זה יכול לקחת עד דקה."
+                   IsVisible="{Binding IsBusy}" Style="{StaticResource Caption}" HorizontalTextAlignment="Center" />
             <Button Text="{Binding ToggleModeText}" Command="{Binding ToggleModeCommand}" Style="{StaticResource SecondaryButton}" />
+            <Button Text="הגדרות שרת" Command="{Binding ToggleServerSettingsCommand}"
+                    BackgroundColor="Transparent" TextColor="{StaticResource Gray500}" FontSize="13" />
 
         </VerticalStackLayout>
     </ScrollView>

@@ -51,4 +51,39 @@ public class ApiClientTests(ClubItApiFactory factory) : MobileTestBase(factory)
         await Assert.ThrowsAsync<ApiException>(() => api.GetClubsAsync());
         Assert.Equal(1, expired);
     }
+
+    [Fact]
+    public async Task Server_address_comes_from_settings_and_can_change_at_runtime()
+    {
+        var settings = new InMemoryServerSettings();
+        var api = new ClubItApiClient(new HttpClient(Factory.Server.CreateHandler()), Session, settings);
+
+        var missing = await Assert.ThrowsAsync<ApiException>(() => api.LoginAsync(new LoginRequest("a@example.com", "x")));
+        Assert.Contains("כתובת שרת", missing.Message);
+
+        settings.SetBaseAddress(new Uri("http://localhost/"));
+        var wrongPassword = await Assert.ThrowsAsync<ApiException>(() => api.LoginAsync(new LoginRequest("a@example.com", "x")));
+        Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
+    }
+
+    [Fact]
+    public async Task Slow_server_reports_a_timeout_message()
+    {
+        var http = new HttpClient(new DelayHandler()) { BaseAddress = new Uri("http://localhost/"), Timeout = TimeSpan.FromMilliseconds(50) };
+        var api = new ClubItApiClient(http, Session);
+
+        var error = await Assert.ThrowsAsync<ApiException>(() => api.GetClubsAsync());
+
+        Assert.Equal(HttpStatusCode.RequestTimeout, error.StatusCode);
+        Assert.Contains("מתעורר", error.Message);
+    }
+
+    private sealed class DelayHandler : HttpMessageHandler
+    {
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+            return new HttpResponseMessage(HttpStatusCode.OK);
+        }
+    }
 }
