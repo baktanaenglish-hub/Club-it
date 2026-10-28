@@ -7,6 +7,7 @@ using ClubIt.Infrastructure;
 using ClubIt.Infrastructure.Identity;
 using ClubIt.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -63,18 +64,24 @@ builder.Services.AddRateLimiter(options =>
 
 builder.Services.AddOpenApi();
 
+// Hosting platforms terminate HTTPS at a proxy; trust its forwarded headers so the client IP
+// (used by the auth rate limiter) and the scheme are the real ones.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-}
-else
-{
-    app.UseHttpsRedirection();
 }
 
 app.UseAuthentication();

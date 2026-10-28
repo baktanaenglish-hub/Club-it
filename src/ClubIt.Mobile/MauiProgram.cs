@@ -8,19 +8,6 @@ namespace ClubIt.Mobile;
 
 public static class MauiProgram
 {
-	/// <summary>
-	/// API address. In debug builds this points at the API running on the development machine
-	/// (the Android emulator reaches the host as 10.0.2.2). Change it for real devices and production.
-	/// </summary>
-	public static Uri ApiBaseAddress { get; } =
-#if DEBUG
-		DeviceInfo.Platform == DevicePlatform.Android
-			? new Uri("http://10.0.2.2:5136/")
-			: new Uri("http://localhost:5136/");
-#else
-		new Uri("https://api.clubit.example/");
-#endif
-
 	public static MauiApp CreateMauiApp()
 	{
 		var builder = MauiApp.CreateBuilder();
@@ -32,9 +19,12 @@ public static class MauiProgram
 		services.AddSingleton<INavigationService, ShellNavigationService>();
 		services.AddSingleton<IDialogService, DialogService>();
 		services.AddSingleton<IUrlLauncher, UrlLauncher>();
+		services.AddSingleton<IServerSettings, PreferencesServerSettings>();
 		services.AddSingleton(sp => new ClubItApiClient(
-			new HttpClient { BaseAddress = ApiBaseAddress, Timeout = TimeSpan.FromSeconds(30) },
-			sp.GetRequiredService<ISessionStore>()));
+			// A free-tier server that went to sleep needs up to about a minute to wake up.
+			new HttpClient { Timeout = TimeSpan.FromSeconds(90) },
+			sp.GetRequiredService<ISessionStore>(),
+			sp.GetRequiredService<IServerSettings>()));
 		services.AddSingleton<IClubItApi>(sp => sp.GetRequiredService<ClubItApiClient>());
 
 		services.AddTransient<LoginViewModel>();

@@ -14,11 +14,12 @@ public static class DependencyInjection
     /// <summary>
     /// Registers persistence, identity and token services. The database provider comes from
     /// <c>Database:Provider</c>: "Postgres" (default, uses migrations) or "Sqlite" (local tryouts and tests).
+    /// A <c>DATABASE_URL</c> setting (as given by hosting providers) takes precedence over <c>ConnectionStrings:ClubIt</c>.
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         var provider = configuration["Database:Provider"] ?? DatabaseProviders.Postgres;
-        var connectionString = configuration.GetConnectionString("ClubIt")
+        var connectionString = NullIfEmpty(configuration["DATABASE_URL"]) ?? configuration.GetConnectionString("ClubIt")
             ?? throw new InvalidOperationException("Connection string 'ClubIt' is not configured.");
 
         services.AddDbContext<AppDbContext>(options =>
@@ -29,7 +30,7 @@ public static class DependencyInjection
             }
             else
             {
-                options.UseNpgsql(connectionString);
+                options.UseNpgsql(PostgresConnectionString.Normalize(connectionString));
             }
         });
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
@@ -63,6 +64,8 @@ public static class DependencyInjection
 
         return services;
     }
+
+    private static string? NullIfEmpty(string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 }
 
 public static class DatabaseProviders

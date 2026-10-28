@@ -57,6 +57,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<!-- Default API address, e.g. dotnet publish -p:ClubItApiUrl=https://clubit-api.onrender.com -->
+		<AssemblyMetadata Include="ClubItApiUrl" Value="$(ClubItApiUrl)" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\ClubIt.Mobile.Core\ClubIt.Mobile.Core.csproj" />
 	</ItemGroup>
 

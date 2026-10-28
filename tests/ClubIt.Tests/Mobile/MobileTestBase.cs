@@ -10,6 +10,7 @@ public abstract class MobileTestBase(ClubItApiFactory factory) : ApiTestBase(fac
     protected InMemorySessionStore Session { get; } = new();
     protected FakeNavigation Navigation { get; } = new();
     protected FakeDialogs Dialogs { get; } = new();
+    protected InMemoryServerSettings Server { get; } = new(new Uri("http://localhost/"));
 
     protected ClubItApiClient CreateApi() => new(Factory.CreateClient(), Session);
 

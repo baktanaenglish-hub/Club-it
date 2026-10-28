@@ -49,6 +49,7 @@ Database__Provider=Sqlite ConnectionStrings__ClubIt="Data Source=clubit.db" dotn
 | מפתח | ברירת מחדל | הערות |
 |---|---|---|
 | `ConnectionStrings:ClubIt` | PostgreSQL מקומי | |
+| `DATABASE_URL` | – | כתובת בפורמט `postgresql://...` כמו ש-Neon ו-Render נותנים. אם מוגדרת, היא גוברת על `ConnectionStrings:ClubIt` |
 | `Database:Provider` | `Postgres` | `Sqlite` לניסוי מקומי (בלי מיגרציות) |
 | `Jwt:SigningKey` | ריק | **חובה**, לפחות 32 תווים. בפיתוח מוגדר ב-`appsettings.Development.json`. בייצור יש לספק אותו כסוד (למשל משתנה סביבה `Jwt__SigningKey`) |
 | `Jwt:ExpirationDays` | 30 | |
@@ -63,7 +64,30 @@ dotnet build src/ClubIt.Mobile -f net10.0-ios -t:Run       # סימולטור iO
 ```
 
 בגרסת Debug האפליקציה פונה לשרת שרץ על מחשב הפיתוח (`10.0.2.2:5136` באמולטור אנדרואיד, `localhost:5136` ב-iOS).
-את הכתובת לגרסת Release מגדירים ב-`MauiProgram.ApiBaseAddress`.
+בכל גרסה אפשר לשנות את כתובת השרת במסך הכניסה ("הגדרות שרת"). כתובת ברירת מחדל קובעים בבנייה עם `-p:ClubItApiUrl=...`.
+
+## העלאה לאוויר
+
+השרת רץ בחינם על [Render](https://render.com), ומסד הנתונים על [Neon](https://neon.com).
+מסד הנתונים החינמי של Render נמחק אחרי 30 יום, ולכן הוא לא בשימוש.
+
+1. **מסד נתונים:** פותחים פרויקט ב-Neon ומעתיקים את ה-Connection string (מתחיל ב-`postgresql://`).
+2. **שרת:** ב-Render בוחרים New ← Blueprint ← הריפו הזה. Render קורא את `render.yaml` ומבקש את `DATABASE_URL`; מדביקים שם את הכתובת מ-Neon. מפתח ה-JWT נוצר אוטומטית.
+3. בסיום מקבלים כתובת כמו `https://clubit-api.onrender.com`. בדיקה: `/health` מחזיר `{"status":"ok"}`.
+
+השרת החינמי נכבה אחרי כרבע שעה בלי שימוש, והבקשה הראשונה אחרי זה מעירה אותו תוך כדקה. האפליקציה מחכה עד 90 שניות.
+
+### האפליקציה לטלפון
+
+ה-workflow `Android app` בונה APK בכל שינוי באפליקציה ב-`main` (וגם ידנית מ-Actions), ומפרסם אותו ב-Release בשם `android-latest`.
+בטלפון: נכנסים לדף ה-Release, מורידים את `ClubIt.apk` ופותחים אותו.
+
+הגדרות אופציונליות ב-Settings ← Secrets and variables ← Actions:
+
+| שם | סוג | מה עושה |
+|---|---|---|
+| `CLUBIT_API_URL` | Variable | כתובת השרת שתיכנס לאפליקציה כברירת מחדל |
+| `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` | Secrets | מפתח חתימה קבוע. בלעדיו כל גרסה נחתמת במפתח אחר, וכדי לעדכן צריך להסיר את הגרסה הקודמת |
 
 ## בדיקות
 
